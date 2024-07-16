@@ -49,4 +49,4 @@ aws     admin     45.16.150.203 22
 
 ___
 
-###### Mirrors for this repository: [acid.vegas](https://git.acid.vegas/eris) • [SuperNETs](https://git.supernets.org/acidvegas/eris) • [GitHub](https://github.com/acidvegas/eris) • [GitLab](https://gitlab.com/acidvegas/eris) • [Codeberg](https://codeberg.org/acidvegas/eris)
+###### Mirrors for this repository: [acid.vegas](https://git.acid.vegas/dbc) • [SuperNETs](https://git.supernets.org/acidvegas/dbc) • [GitHub](https://github.com/acidvegas/dbc) • [GitLab](https://gitlab.com/acidvegas/dbc) • [Codeberg](https://codeberg.org/acidvegas/dbc)
