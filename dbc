@@ -1,0 +1,85 @@
+#!/bin/sh
+# Dropbear Connect Script (DBC) - Developed by acidvegas (https://git.acid.vegas/void)
+
+# Dropbear config must be stored in pass in the following format:
+#   NAME USER HOST PORT JUMP
+#
+# JUMP is optional and can be used to specify a host that should use your jump host.
+# If JUMP is set to x, the script will use the jump host to connect to the end host.
+# There should only be one jump host in the config file and it should be named 'jump'.
+#
+# Example:
+#   jump    acidvegas 68.192.37.5   5902
+#   hatebox acidvegas 100.151.45.10 2023 x
+#   aws     admin     45.16.150.203 22
+#
+# Useful commands:
+#   Git usage            : git config core.sshCommand "dbclient -i ~/.ssh/key"
+#   Generate private key : dropbearkey -t ed25519 -f ~/.dropbear/key | grep "ssh-ed25519"
+#   Get public key       : dropbearkey -y -f ~/.dropbear/key | head -n 2 | tail -n 1
+
+# Config
+PASS_PATH="$HOME/.scripts/pass"  # Path to the pass script
+PASS_DROPBEAR="dropbear"         # Name of entry in pass for the dropbear config
+PASS_DROPBEAR_KEY="dropbear_key" # Name of entry in pass for the dropbear key
+
+load_host() {
+    CONFIG_DATA="$1"
+    NAME="$2"
+    MATCHING_LINES=$(printf "%s\n" "$CONFIG_DATA" | grep "^$NAME ")
+    LINE_COUNT=$(printf "%s\n" "$MATCHING_LINES" | wc -l)
+    if [ "$LINE_COUNT" -ne 1 ]; then
+        echo "Error: The NAME '$NAME' matches multiple or no lines." && return 1
+    fi
+    MATCHING_LINES=$(printf "%s\n" "$MATCHING_LINES" | tr -s '[:space:]' ' ')
+    line_name=$(echo $MATCHING_LINES | cut -d ' ' -f 1)
+    line_user=$(echo $MATCHING_LINES | cut -d ' ' -f 2)
+    line_host=$(echo $MATCHING_LINES | cut -d ' ' -f 3)
+    line_port=$(echo $MATCHING_LINES | cut -d ' ' -f 4)
+    line_jump=$(echo $MATCHING_LINES | cut -d ' ' -f 5)
+    printf "%s@%s^%s%s" "$line_user" "$line_host" "$line_port" "$line_jump"
+}
+
+cleanup() {
+    rm -f "$TMP_KEY"
+}
+
+# Check if the name argument is provided
+if [ $# -ne 1 ]; then
+    echo "usage: $0 [name]" && exit 1
+fi
+
+# Read the name argument
+NAME=$1
+
+# Read the config data
+CONFIG_DATA=$($PASS_PATH $PASS_DROPBEAR)
+
+# Check if the config data is read successfully
+if [ $? -ne 0 ]; then
+    cho "error: can not read config data" && exit 1
+fi
+
+# Decrypt the dropbear key to a temporary file
+TMP_KEY=$(mktemp /tmp/tmp.XXXXXXXXXX)
+$PASS_PATH $PASS_DROPBEAR_KEY > "$TMP_KEY"
+chmod 600 "$TMP_KEY"
+
+# Set up cleanup on exit
+trap cleanup EXIT
+
+# Remove the temporary key after 10 seconds (timebomb)
+printf "sleep 10 && rm -f $TMP_KEY &" | sh &
+
+# Load the host data
+JUMP_HOST=$(load_host "$CONFIG_DATA" "jump")
+END_HOST=$(load_host "$CONFIG_DATA" "$NAME")
+JUMP_CHECK=$(printf "$END_HOST" | rev | cut -c1)
+
+# Connect to the host
+if [ $JUMP_CHECK = "x" ]; then
+    END_HOST=$(printf $END_HOST | rev | cut -c2- | rev)
+    dbclient -K 60 -i "$TMP_KEY" $JUMP_HOST,$END_HOST
+else
+    dbclient -K 60 -i "$TMP_KEY" $END_HOST
+fi
