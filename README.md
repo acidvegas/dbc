@@ -7,13 +7,15 @@ DBC is a simple script to manage your SSH connections with [Dropbear](https://gi
 ## Introduction
 Dropbear does not have built-in support for an `.ssh/config` file, and even with OpenSSH, storing all your remote infrastructure in plain-text might not be a good idea.
 
+If you want to compile it yourself, you can set `#define DROPBEAR_USE_SSH_CONFIG 1` to enable support for the limited `.ssh/dropbear-config`. This is disabled by default & was only recently added.
+
 Dropbear does not have support for encrypted SSH private keys, and even with OpenSSH, storing your private keys *(even if encrypted)* in the default `.ssh` directory might not be a good idea.
 
 DBC is really simple & meant to run side-by-side with [pass](https://github.com/acidvegas/pass) securely store your `.ssh/config` & your SSH private keys.
 
 You can securely manage & organize your SSH connections now. Your SSH private key is temporarily decrypted in RAM & used to connect. Once connected, the key is wiped.
 
-## Usage
+## DBC Client Usage
 1. Store your Dropbear configurations in your password store under the name `dropbear` in the following format:
 
 ```
@@ -41,8 +43,8 @@ aws     admin     45.16.150.203 22
 ./dbc hatebox
 ```
 
-## Useful Commands
-
+## Useful Tips
+- Run the daemon with: `dropbear -p LOCAL_IP:RANDOM_PORT -w -t -T 1 -R -F` *(This will disable root logins & require both a password & key to connect)*
 - Git usage: `git config core.sshCommand "dbclient -i ~/.ssh/key"`
 - Generate private key: `dropbearkey -t ed25519 -f ~/.dropbear/key | grep "ssh-ed25519"`
 - Get public key: `dropbearkey -y -f ~/.dropbear/key | head -n 2 | tail -n 1`
