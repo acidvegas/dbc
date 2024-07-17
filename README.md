@@ -1,8 +1,7 @@
 # Dropbear Connect
 > A secure & efficient way to manage your remote connections with Dropbear!
 
-DBC is a simple script to manage your SSH connections with [Dropbear](https://github.com/mkj/dropbear)
-, which is an alternative to OpenSSH for remote connections.
+DBC is a simple script to manage your SSH connections with [Dropbear](https://github.com/mkj/dropbear), which is an alternative to OpenSSH for remote connections.
 
 ## Introduction
 Dropbear does not have built-in support for an `.ssh/config` file, and even with OpenSSH, storing all your remote infrastructure in plain-text might not be a good idea.
