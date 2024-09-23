@@ -57,7 +57,7 @@ CONFIG_DATA=$($PASS_PATH $PASS_DROPBEAR)
 
 # Check if the config data is read successfully
 if [ $? -ne 0 ]; then
-    cho "error: can not read config data" && exit 1
+    echo "error: can not read config data" && exit 1
 fi
 
 # Decrypt the dropbear key to a temporary file
